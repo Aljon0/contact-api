@@ -1,8 +1,10 @@
+// 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
 // jcff linq brmn zvfa
-import express from "express";
-import nodemailer from "nodemailer";
+import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
+import express from "express";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -146,6 +148,85 @@ app.post("/api/send-email", async (req, res) => {
       success: false,
       message: "Failed to send email. Please try again later.",
     });
+  }
+});
+
+// Personal information to include in AI prompts
+const personalContext = `
+Al-Jon is a developer with skills in React, Node.js, Vue.js, Express, and has security experience 
+including Penetration Testing and Authentication Systems. He's worked on projects including 
+an E-Commerce Platform, Security Dashboard, Portfolio Website, and Task Management App.
+He's based in General Trias, Cavite, Philippines and can be contacted at aljon.media0@gmail.com
+or by phone at +63 906 920 8512.
+`;
+
+// API endpoint for chatbot
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+    
+    // Format the prompt with your personal information context
+    const prompt = `
+The following is information about Al-Jon:
+${personalContext}
+
+Based on the above information about Al-Jon, please respond helpfully to this message:
+"${message}"
+
+Keep your response conversational, friendly, and concise.
+`;
+    
+    // Call Hugging Face Inference API
+    const response = await axios.post(
+      'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill',
+      { inputs: prompt },
+      { 
+        headers: { 
+          'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          'Content-Type': 'application/json'
+        } 
+      }
+    );
+    
+    // Process the response from Hugging Face
+    let botResponse = '';
+    if (response.data && response.data[0] && response.data[0].generated_text) {
+      botResponse = response.data[0].generated_text.trim();
+      
+      // Clean up the response if needed (some models might include the input in the response)
+      if (botResponse.includes(prompt)) {
+        botResponse = botResponse.replace(prompt, '').trim();
+      }
+    } else {
+      botResponse = "I'm sorry, I couldn't process your request. Please try again.";
+    }
+    
+    // Send response back to client
+    res.json({ response: botResponse });
+  } catch (error) {
+    console.error('Error with chatbot API:', error);
+    
+    // If Hugging Face API fails, use fallback responses
+    const lowerInput = req.body.message.toLowerCase();
+    let fallbackResponse = "";
+    
+    if (lowerInput.includes("project") || lowerInput.includes("work")) {
+      fallbackResponse = "Al-Jon has worked on several projects, including an E-Commerce Platform, Security Dashboard, Portfolio Website, and Task Management App. All of these are built with React, Node.js, and Tailwind CSS.";
+    } else if (lowerInput.includes("skill") || lowerInput.includes("tech")) {
+      fallbackResponse = "Al-Jon's technical expertise spans across multiple domains of web development and security. He works with technologies like React, Node.js, Vue.js, Express, and has security experience including Penetration Testing and Authentication Systems.";
+    } else if (lowerInput.includes("contact") || lowerInput.includes("email") || lowerInput.includes("reach")) {
+      fallbackResponse = "You can contact Al-Jon via email at aljon.media0@gmail.com or by phone at +63 906 920 8512. He's based in General Trias, Cavite, Philippines.";
+    } else if (lowerInput.includes("location") || lowerInput.includes("based") || lowerInput.includes("live")) {
+      fallbackResponse = "Al-Jon is based in General Trias, Cavite, Philippines.";
+    } else if (lowerInput.includes("hello") || lowerInput.includes("hi") || lowerInput.includes("hey")) {
+      fallbackResponse = "Hello! I'm Al-Jon's virtual assistant. How can I help you today?";
+    } else if (lowerInput.includes("background") || lowerInput.includes("experience")) {
+      fallbackResponse = "Al-Jon has a background in both development and security. He brings a unique perspective to projects, ensuring they're not only functional but also user-friendly and secure.";
+    } else {
+      fallbackResponse = "Thanks for your message. I'm Al-Jon's virtual assistant. If you have questions about his projects, skills, or would like to get in touch, feel free to ask!";
+    }
+    
+    res.json({ response: fallbackResponse });
   }
 });
 
