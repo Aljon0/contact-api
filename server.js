@@ -167,7 +167,7 @@ Tech Stack Preferences:
 Al-Jon is most comfortable with React.js and Tailwind CSS on the frontend, and Express.js with Firebase 
 on the backend. His favorite stack is FERN — Firebase, Express, React, and Node. He's especially fond of 
 Firebase because it's a NoSQL database that's secure, scalable, and developer-friendly. He also works with 
-MongoDB, Supabase, and Appwrite. While capable of full-stack development, he leans more toward backend 
+Supabase, and Appwrite. While capable of full-stack development, he leans more toward backend 
 development, enjoying the creation of secure, fast, and scalable APIs.
 
 Development Approach:
@@ -190,10 +190,85 @@ Additional Skills and Experience:
 - Strong problem-solving abilities and adaptability to new technologies
 `;
 
+// Array of off-topic responses
+const offTopicResponses = [
+  "I'm focused on sharing info about Al-jon Santiago and their portfolio. Let's stick to that!",
+  "Hmm... that doesn't seem related to Al-jon Santiago's work. Want to hear about their latest project?",
+  "I'm your assistant for all things Al-jon Santiago — try asking about their skills or projects!",
+];
+
+// Keywords related to Al-Jon's profile to detect on-topic questions
+const alJonKeywords = [
+  "al-jon",
+  "aljon",
+  "santiago",
+  "developer",
+  "react",
+  "node",
+  "express",
+  "security",
+  "firebase",
+  "project",
+  "portfolio",
+  "skill",
+  "experience",
+  "education",
+  "background",
+  "contact",
+  "eternal design",
+  "gravestone",
+  "3d",
+  "tailwind",
+  "full-stack",
+  "backend",
+  "frontend",
+  "deadline",
+  "pressure",
+  "philippines",
+  "email",
+  "phone",
+  "location",
+  "remote",
+  "work",
+  "hire",
+  "interview",
+  "job",
+  "position",
+  "role",
+  "resume",
+  "cv",
+  "availability",
+];
+
+// Function to check if a message is related to Al-Jon
+function isRelatedToAlJon(message) {
+  const loweredMessage = message.toLowerCase();
+
+  // Check for common greetings that should be allowed
+  if (/^(hi|hello|hey|greetings)[\s!,.?]*$/i.test(loweredMessage)) {
+    return true;
+  }
+
+  // Check if any Al-Jon related keyword is in the message
+  return alJonKeywords.some((keyword) => loweredMessage.includes(keyword));
+}
+
+// Function to get a random off-topic response
+function getRandomOffTopicResponse() {
+  const randomIndex = Math.floor(Math.random() * offTopicResponses.length);
+  return offTopicResponses[randomIndex];
+}
+
 // API endpoint for chatbot
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
+
+    // Check if the message is related to Al-Jon
+    if (!isRelatedToAlJon(message)) {
+      // If not related, return a random off-topic response
+      return res.json({ response: getRandomOffTopicResponse() });
+    }
 
     // Format the prompt with the enhanced personal information context
     const prompt = `
@@ -243,6 +318,12 @@ unless specifically asked.
     res.json({ response: botResponse });
   } catch (error) {
     console.error("Error with chatbot API:", error);
+
+    // Check if the message is related to Al-Jon
+    if (!isRelatedToAlJon(req.body.message)) {
+      // If not related, return a random off-topic response
+      return res.json({ response: getRandomOffTopicResponse() });
+    }
 
     // Enhanced fallback responses for recruiters
     const lowerInput = req.body.message.toLowerCase();
