@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mistralai/mistralai": "^1.6.0",
     "axios": "^1.8.4",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
